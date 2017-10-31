@@ -1,0 +1,34 @@
+package edu.xcc.dao;
+import edu.xcc.module.*;
+import java.util.List;
+import java.util.Map;
+public interface Logon {
+	public User LogQuery(String id,String pwd);
+	public List<Store> StoreQuery(String qk);
+	public List<Spare> SpareQuery(String qk);
+	public List<Income> IncomeQuery(String qk);
+	public List<Income> OutgoQuery(String qk);
+	public int Inisrt(Map<String, String> map);
+	public int Inupdate(Map<String, String> map);
+	public int Indel(Map<String, String> map);
+	public int Outgo(Map<String, String> map);
+	public int Outupdate(Map<String, String> map);
+	public int Outdel(Map<String, String> map);
+	public List<House> Houseq(String qk);
+	public List<Ware> Wareq(String qk);
+	public int Hsupdate(Map<String, String> map);
+	public int Hsin(Map<String, String> map);
+	public int Warein(Map<String, String> map);
+	public int Wareup(Map<String, String> map);
+	public List<Ioreport> Irpt(Map<String, String> map);
+	public List<Ioreport> Outrpt(Map<String, String> map);
+	public List<Ioreport> Sirpt(Map<String, String> map);
+	public List<Ioreport> Soutrpt(Map<String, String> map);
+	public List<Income> Dqury();
+	public int Uup(String nk,String id);
+	public List<User> usrQuery(String s);
+	public int usrAdd(Map<String, String> map);
+	public int usrEd(Map<String, String> map);
+	public int usrPEd(Map<String, String> map);
+	public int usrDel(Map<String, String> map);
+}

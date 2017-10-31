@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.xcc.dao.Logon">
+<!-- 登录-->
+<select id="LogQuery" parameterType="String" resultType="edu.xcc.module.User">
+select Id,Name,Role from manage where Id = #{0} and KeyWords=MD5(#{1})
+</select>
+<!-- 用户信息查询-->
+<select id="usrQuery" parameterType="String" resultType="edu.xcc.module.User">
+select Id,Name,Role from manage where (Id like CONCAT('%',#{0},'%') or Name like CONCAT('%',#{0},'%')) and Role='普通用户' limit 20;
+</select>
+<!-- 用户添加 -->
+<insert id="usrAdd" parameterType="java.util.Map" >
+INSERT INTO manage values(#{nid},#{nname},MD5(#{npwd}),#{nrole});
+</insert>
+<!-- 用户更改 -->
+<update id="usrEd" parameterType="java.util.Map">
+update manage set Name=#{nname},Role=#{nrole} 
+where Id=#{nid};
+</update>
+<update id="usrPEd" parameterType="java.util.Map">
+update manage set Name=#{nname},Role=#{nrole},KeyWords=MD5(#{npwd})
+where Id=#{nid};
+</update>
+<!-- 用户删除 -->
+<delete id="usrDel" parameterType="java.util.Map" >
+delete from manage where Id=#{nid};
+</delete>
+<!-- 库存信息 -->
+<select id="StoreQuery" parameterType="String" resultType="edu.xcc.module.Store">
+select * from (SELECT store.*,ware.Name FROM store left join ware on store.Barcode=ware.Barcode where Number>0) a 
+WHERE Name LIKE CONCAT('%',#{0},'%') or Barcode like CONCAT('%',#{0},'%') limit 20;
+</select>
+<!-- 可存量 -->
+<select id="SpareQuery" parameterType="String" resultType="edu.xcc.module.Spare">
+select Id,Name,Capacity-Number Spare from 
+(select Id,Name,Capacity,ifnull(Number,0) Number from 
+house left join store on Id=houseId group by Id) a where 
+Name like CONCAT('%',#{0},'%') or Id like CONCAT('%',#{0},'%') limit 20;
+</select>
+<!-- 入库记录 -->
+<select id="IncomeQuery" parameterType="String" resultType="edu.xcc.module.Income">
+select Id,a.Barcode,a.ProDate,HouseId,Number,DateTime,OperatorId,Name,a.Other from 
+incoming a left join ware b on a.Barcode=b.Barcode where
+Id like CONCAT('%',#{0},'%') or Name like CONCAT('%',#{0},'%')
+limit 20;
+</select>
+<!-- 出库记录 -->
+<select id="OutgoQuery" parameterType="String" resultType="edu.xcc.module.Income">
+select Id,a.Barcode,HouseId,ProDate,Number,DateTime,OperatorId,Name,a.Other from 
+outgoing a left join ware b on a.Barcode=b.Barcode where
+Id like CONCAT('%',#{0},'%') or Name like CONCAT('%',#{0},'%')
+limit 20;
+</select>
+<!-- 入库 -->
+<insert id="Inisrt" parameterType="java.util.Map" >
+insert into incoming (Id,Barcode,ProDate,HouseId,Number,OperatorId,Other) 
+values(CONCAT(date_format(now(),"%Y%m%d"),#{id}),#{bcd},#{date},#{hid},#{nbr},#{oid},#{or});
+</insert>
+<!-- 入库更改 -->
+<update id="Inupdate" parameterType="java.util.Map">
+update incoming set Number=#{nbr},OperatorId=#{oid},Other=#{or} 
+where Id=#{id} and Barcode=#{bcd} and ProDate=#{date} and HouseId=#{hid};
+</update>
+<!-- 入库删除 -->
+<delete id="Indel" parameterType="java.util.Map" >
+delete from incoming where Id=#{id} and Barcode=#{bcd} and ProDate=#{date} and HouseId=#{hid};
+</delete>
+<!-- 出库 -->
+<insert id="Outgo" parameterType="java.util.Map" >
+insert into outgoing (Id,Barcode,ProDate,HouseId,Number,OperatorId,Other) 
+values(CONCAT(date_format(now(),"%Y%m%d"),#{id}),#{bcd},#{date},#{hid},#{nbr},#{oid},#{or});
+</insert>
+<!-- 出库更改 -->
+<update id="Outupdate" parameterType="java.util.Map">
+update outgoing set Number=#{nbr},OperatorId=#{oid},Other=#{or} 
+where Id=#{id} and Barcode=#{bcd} and ProDate=#{date} and HouseId=#{hid};
+</update>
+<!-- 出库删除 -->
+<delete id="Outdel" parameterType="java.util.Map" >
+delete from outgoing where Id=#{id} and Barcode=#{bcd} and ProDate=#{date} and HouseId=#{hid};
+</delete>
+<!-- 仓库信息 -->
+<select id="Houseq" parameterType="String" resultType="edu.xcc.module.House">
+select * from house where Id like CONCAT('%',#{0},'%') or Name like CONCAT('%',#{0},'%') limit 20;
+</select>
+<!-- 仓库更改 -->
+<update id="Hsupdate" parameterType="java.util.Map">
+update house set Type=#{type},Name=#{name},Capacity=#{capa},Other=#{or} 
+where Id=#{id};
+</update>
+<!-- 仓库添加 -->
+<insert id="Hsin" parameterType="java.util.Map" >
+INSERT INTO house values(#{id},#{type},#{name},#{capa},#{or});
+</insert>
+<!-- 商品信息 -->
+<select id="Wareq" parameterType="String" resultType="edu.xcc.module.Ware">
+select * from ware where Barcode like CONCAT('%',#{0},'%') or Name like CONCAT('%',#{0},'%') limit 20;
+</select>
+<insert id="Warein" parameterType="java.util.Map" >
+INSERT INTO ware values(#{bar},#{name},#{upc},#{bra},#{sp},#{dat},#{or});
+</insert>
+<!-- 商品更改 -->
+<update id="Wareup" parameterType="java.util.Map">
+update ware set Name=#{name},UNSPSC=#{upc},Spec=#{sp},Life=#{dat},Other=#{or} 
+where Barcode=#{bar};
+</update>
+<!-- 入库报表 -->
+<select id="Irpt" parameterType="java.util.Map" resultType="edu.xcc.module.Ioreport">
+SELECT Barcode,Name,Brand, COUNT(*) Times,SUM(Number) Number FROM
+(SELECT a.*,b.Name,b.Brand FROM 
+`incoming` a LEFT JOIN ware b ON a.Barcode=b.Barcode WHERE a.Other='' AND DateTime BETWEEN #{begin} AND #{end}) src 
+GROUP BY Barcode
+</select>
+<!-- 出库报表 -->
+<select id="Outrpt" parameterType="java.util.Map" resultType="edu.xcc.module.Ioreport">
+SELECT Barcode,Name,Brand, COUNT(*) Times,SUM(Number) Number FROM
+(SELECT a.*,b.Name,b.Brand FROM 
+`outgoing` a LEFT JOIN ware b ON a.Barcode=b.Barcode WHERE a.Other='' AND DateTime BETWEEN #{begin} AND #{end}) src 
+GROUP BY Barcode
+</select>
+<!-- 特殊入库报表 -->
+<select id="Sirpt" parameterType="java.util.Map" resultType="edu.xcc.module.Ioreport">
+SELECT Barcode,Name,Brand, COUNT(*) Times,SUM(Number) Number,Other Rtimes FROM
+(SELECT a.*,b.Name,b.Brand FROM 
+`incoming` a LEFT JOIN ware b ON a.Barcode=b.Barcode WHERE a.Other!='' AND DateTime BETWEEN #{begin} AND #{end}) src 
+GROUP BY Barcode
+</select>
+<!-- 特殊出库报表 -->
+<select id="Soutrpt" parameterType="java.util.Map" resultType="edu.xcc.module.Ioreport">
+SELECT Barcode,Name,Brand, COUNT(*) Times,SUM(Number) Number,Other Rtimes FROM
+(SELECT a.*,b.Name,b.Brand FROM 
+`outgoing` a LEFT JOIN ware b ON a.Barcode=b.Barcode WHERE a.Other!='' AND DateTime BETWEEN #{begin} AND #{end}) src 
+GROUP BY Barcode
+</select>
+<select id="Dqury" parameterType="java.util.Map" resultType="edu.xcc.module.Income">
+SELECT remd.Barcode,ware.Name,remd.HouseId,remd.Number,ware.Life-DATEDIFF(now(),remd.ProDate) DateTime FROM 
+remd LEFT JOIN ware ON remd.Barcode=ware.Barcode WHERE (ware.Life - DATEDIFF(now(),remd.ProDate))&lt;7
+</select>
+<update id="Uup" parameterType="String">
+update manage set KeyWords=MD5(#{0}) where Id = #{1}
+</update>
+</mapper>
